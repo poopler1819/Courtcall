@@ -235,7 +235,7 @@ export default function TennisApp() {
         <div style={S.headerInner}>
           <div style={S.logo}>
             <span style={S.logoIcon}>🎾</span>
-            <span style={S.logoText}>CourtCall</span>
+            <span style={S.logoText}>Hekoballs</span>
             <span style={S.logoBadge}>SG</span>
           </div>
           {currentUser && (
@@ -262,8 +262,8 @@ export default function TennisApp() {
         {!currentUser && (
           <div style={S.authCard}>
             <div style={S.authEmoji}>🎾</div>
-            <h1 style={S.authTitle}>CourtCall SG</h1>
-            <p style={S.authSub}>Your crew's tennis planner — slots, polls & courts in one place.</p>
+            <h1 style={S.authTitle}>Hekoballs</h1>
+            <p style={S.authSub}>Your crew's tennis planner — slots, polls & courts in one place. 🎾</p>
             <div style={S.tabRow}>
               {["login","register"].map(m => (
                 <button key={m} style={{...S.tabBtn,...(authMode===m?S.tabBtnActive:{})}} onClick={() => { setAuthMode(m); setAuthErr(""); }}>
