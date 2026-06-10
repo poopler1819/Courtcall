@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 const SUPA_URL = "https://jbqhrldmmonxsvgifuch.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpicWhybGRtbW9ueHN2Z2lmdWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzY0MTMsImV4cCI6MjA5NjY1MjQxM30.yrum1B4w3mMNwAVTwWNGxDdBWPegYad75hikz56E-HU";
 
-const SUPA_KEY = "sb_publishable_oL9_5u5K0Vz5Mx7nPz5zEg_1jRuoYUk";
+const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpicWhybGRtbW9ueHN2Z2lmdWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzY0MTMsImV4cCI6MjA5NjY1MjQxM30.yrum1B4w3mMNwAVTwWNGxDdBWPegYad75hikz56E-HU";
 
 const db = async (path, opts = {}) => {
   const method = opts.method || "GET";
