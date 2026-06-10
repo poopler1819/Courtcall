@@ -4,30 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 const SUPA_URL = "https://jbqhrldmmonxsvgifuch.supabase.co";
 const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpicWhybGRtbW9ueHN2Z2lmdWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzY0MTMsImV4cCI6MjA5NjY1MjQxM30.yrum1B4w3mMNwAVTwWNGxDdBWPegYad75hikz56E-HU";
 
-const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpicWhybGRtbW9ueHN2Z2lmdWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNzY0MTMsImV4cCI6MjA5NjY1MjQxM30.yrum1B4w3mMNwAVTwWNGxDdBWPegYad75hikz56E-HU";
+const SUPA_KEY = "sb_publishable_oL9_5u5K0Vz5Mx7nPz5zEg_1jRuoYUk";
 
 const db = async (path, opts = {}) => {
   const method = opts.method || "GET";
-  const url = `${SUPA_URL}/rest/v1/${path}`;
-  // Try direct first
-  try {
-    const r = await fetch(url, {
-      method,
-      headers: {
-        "apikey": SUPA_KEY,
-        "Authorization": `Bearer ${SUPA_KEY}`,
-        "Content-Type": "application/json",
-        "Prefer": opts.prefer || "return=representation",
-      },
-      body: opts.body || undefined,
-    });
-    if (r.ok) { const t = await r.text(); return t ? JSON.parse(t) : []; }
-    const errText = await r.text();
-    if (!errText.includes("allowlist")) throw new Error(errText);
-  } catch(e) { if (!e.message?.includes("allowlist") && !e.message?.includes("fetch")) throw e; }
-  // Fall back to proxy
-  const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-  const r2 = await fetch(proxy, {
+  const res = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
     method,
     headers: {
       "apikey": SUPA_KEY,
@@ -37,9 +18,9 @@ const db = async (path, opts = {}) => {
     },
     body: opts.body || undefined,
   });
-  if (!r2.ok) throw new Error(await r2.text());
-  const t2 = await r2.text();
-  return t2 ? JSON.parse(t2) : [];
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -120,7 +101,7 @@ function useWeather() {
       const items = d?.data?.items;
       if (!items?.length) throw new Error();
       const forecasts = items[0].forecasts;
-      const central = forecasts.find(f => ["Bishan","Toa Payoh","Novena","Orchard","Newton"].includes(f.area)) || forecasts[0];
+      const central = forecasts.find(f => ["Jurong West","Jurong East","Boon Lay","Clementi","Bukit Batok"].includes(f.area)) || forecasts[0];
       setWx({ area: central.area, forecast: central.forecast });
       setError(false);
     } catch { setError(true); }
