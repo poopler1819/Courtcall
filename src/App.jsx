@@ -310,6 +310,17 @@ export default function App() {
 
   const filteredVenues = venueFilter === "All" ? VENUES : VENUES.filter(v => v.area.startsWith(venueFilter));
 
+  // ── Admin ──────────────────────────────────────────────────────────────
+  const ADMIN_PIN = "1819"; // change this to your own secret PIN
+  const [adminUnlocked, setAdminUnlocked] = useState(false);
+  const [adminPinInput, setAdminPinInput] = useState("");
+  const [adminPinErr, setAdminPinErr] = useState(false);
+
+  const handleAdminUnlock = () => {
+    if (adminPinInput === ADMIN_PIN) { setAdminUnlocked(true); setAdminPinErr(false); }
+    else { setAdminPinErr(true); setAdminPinInput(""); }
+  };
+
   // ── Render ─────────────────────────────────────────────────────────────
   return (
     <div style={S.root}>
@@ -333,7 +344,7 @@ export default function App() {
 
       {currentUser && (
         <nav style={S.nav}>
-          {[["home","🏠 Home"],["slots","📅 Court Slots"],["polls","🗳 Polls"],["venues","📍 Venues"],["weather","🌤 Weather"]].map(([k,l]) => (
+          {[["home","🏠 Home"],["slots","📅 Court Slots"],["polls","🗳 Polls"],["venues","📍 Venues"],["weather","🌤 Weather"],["admin","🔐 Admin"]].map(([k,l]) => (
             <button key={k} style={{...S.navBtn,...(view===k?S.navBtnActive:{})}} onClick={() => setView(k)}>{l}</button>
           ))}
         </nav>
@@ -491,6 +502,92 @@ export default function App() {
             <h2 style={S.pageTitle}>Singapore Weather</h2>
             <p style={S.pageSub}>Live data from NEA — updated every 10 minutes.</p>
             <WeatherFull wx={wx} wx24={wx24} loading={wxLoading} error={wxError} />
+          </div>
+        )}
+
+        {/* ── ADMIN ── */}
+        {currentUser && view==="admin" && (
+          <div>
+            <h2 style={S.pageTitle}>🔐 Admin View</h2>
+            <p style={S.pageSub}>Moderator access — enter your PIN to continue.</p>
+
+            {!adminUnlocked ? (
+              <div style={{...S.formCard, maxWidth:320}}>
+                <div style={S.fg}>
+                  <label style={S.label}>Admin PIN</label>
+                  <input style={S.input} type="password" inputMode="numeric" maxLength={6} placeholder="••••"
+                    value={adminPinInput} onChange={e => setAdminPinInput(e.target.value)}
+                    onKeyDown={e => e.key==="Enter" && handleAdminUnlock()} />
+                </div>
+                {adminPinErr && <p style={S.errMsg}>Wrong PIN. Try again.</p>}
+                <button style={S.btnPrimary} onClick={handleAdminUnlock}>Unlock →</button>
+              </div>
+            ) : (
+              <div>
+                {/* Players */}
+                <div style={S.adminSection}>
+                  <div style={S.adminSectionTitle}>👥 Registered Players ({users.length})</div>
+                  {users.map((u, i) => (
+                    <div key={u.id} style={S.adminRow}>
+                      <span style={S.adminRowNum}>{i+1}</span>
+                      <span style={S.adminRowName}>{u.name}</span>
+                      <span style={S.adminRowMeta}>Joined {u.created_at ? new Date(u.created_at).toLocaleDateString("en-SG",{day:"numeric",month:"short"}) : "—"}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Slots */}
+                <div style={S.adminSection}>
+                  <div style={S.adminSectionTitle}>📅 All Court Slots ({slots.length})</div>
+                  {slots.length === 0 ? <div style={S.empty}>No slots posted yet.</div> : slots.map(s => (
+                    <div key={s.id} style={S.adminCard}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                        <div>
+                          <div style={S.adminCardTitle}>{fmtDate(s.date)} · {fmtTime(s.time_from)}–{fmtTime(s.time_to)}</div>
+                          <div style={S.adminCardSub}>📍 {s.court}</div>
+                          <div style={S.adminCardMeta}>Posted by <strong>{s.posted_by_name}</strong></div>
+                        </div>
+                        <button style={S.btnDanger} onClick={() => deleteSlot(s.id)}>✕</button>
+                      </div>
+                      {s.signups?.length > 0 && (
+                        <div style={S.adminSignups}>
+                          ✅ Signed up: {s.signups.map(id => users.find(u=>u.id===id)?.name || id).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Polls */}
+                <div style={S.adminSection}>
+                  <div style={S.adminSectionTitle}>🗳 All Polls ({polls.length})</div>
+                  {polls.length === 0 ? <div style={S.empty}>No polls yet.</div> : polls.map(p => (
+                    <div key={p.id} style={S.adminCard}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                        <div style={S.adminCardTitle}>{p.title}</div>
+                        <button style={S.btnDanger} onClick={() => deletePoll(p.id)}>✕</button>
+                      </div>
+                      <div style={S.adminCardMeta}>Created by <strong>{p.created_by_name}</strong></div>
+                      {(p.options||[]).map((opt,i) => (
+                        <div key={i} style={S.adminPollOpt}>
+                          <span style={{fontWeight:600}}>{opt.label}</span>
+                          <span style={{color:"#718096",fontSize:12,marginLeft:8}}>{opt.votes.length} vote{opt.votes.length!==1?"s":""}</span>
+                          {opt.votes.length > 0 && (
+                            <div style={S.adminVoters}>
+                              {opt.votes.map(id => users.find(u=>u.id===id)?.name || id).join(", ")}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+
+                <button style={{...S.btnGhost, marginTop:8}} onClick={() => { setAdminUnlocked(false); setAdminPinInput(""); }}>
+                  🔒 Lock admin
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -770,4 +867,18 @@ const S = {
   periodRegion: { color:"#4a5568", fontWeight:600 },
   periodFc:     { color:"#718096" },
   wxSource:     { fontSize:11, color:"#a0aec0", textAlign:"center", marginTop:16 },
+  // Admin
+  adminSection:     { background:"#fff", borderRadius:12, padding:"18px", marginBottom:16, border:"1px solid #e2e8f0" },
+  adminSectionTitle:{ fontSize:13, fontWeight:700, color:"#1a4731", marginBottom:14, textTransform:"uppercase", letterSpacing:"0.5px" },
+  adminRow:     { display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:"1px solid #f0f7f4" },
+  adminRowNum:  { fontSize:12, color:"#a0aec0", width:20, flexShrink:0 },
+  adminRowName: { fontSize:14, fontWeight:600, color:"#2d3748", flex:1 },
+  adminRowMeta: { fontSize:12, color:"#a0aec0" },
+  adminCard:    { background:"#f8fffe", borderRadius:10, padding:"14px", marginBottom:10, border:"1px solid #e2e8f0" },
+  adminCardTitle:{ fontSize:14, fontWeight:700, color:"#1a4731", marginBottom:4 },
+  adminCardSub: { fontSize:13, color:"#4a5568", marginBottom:4 },
+  adminCardMeta:{ fontSize:12, color:"#a0aec0", marginBottom:6 },
+  adminSignups: { fontSize:12, color:"#276749", fontWeight:600, marginTop:8, paddingTop:8, borderTop:"1px solid #e2e8f0" },
+  adminPollOpt: { padding:"8px 0", borderBottom:"1px solid #f0f7f4", fontSize:13 },
+  adminVoters:  { fontSize:11, color:"#718096", marginTop:3 },
 };
